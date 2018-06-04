@@ -11,7 +11,7 @@ import cv2
 from math import factorial
 from PIL import Image
 
-OPTIONS = """conversion.py <option>
+OPTIONS = """conversion.py <option> file
 Skrypt korzysta z rozkładu Poissona do generacji obrazów. Korzystając z pikseli jako parametr alfa generuje sekwencje zdjęć {alfa, alfa/2, alfa/4, alfa/8, alfa/16, alfa/32, alfa/64, alfa/128}.
 option:
 HSL - korzysta z średniego światła białego w przestrzeni HSL
@@ -36,7 +36,7 @@ if __name__ == '__main__':
         print(OPTIONS)
         sys.exit(-1)
 
-    image = cv2.imread("CygnusOlor.jpg")
+    image = cv2.imread(sys.argv[2])
     viewer = QtImageViewer()
     viewer.show()
     viewer.setGeometry(100,100,400,400)
