@@ -329,8 +329,11 @@ class AppForMiI(QWidget):
 
         self.image = cv2.imread(self.filePath.text())
         
-        if self.lastFiles.count() == 0 or self.lastFiles.item(0).text() != self.filePath.text():
-            self.lastFiles.insertItem(0, self.filePath.text())
+        for i in range(self.lastFiles.count()):
+            if self.lastFiles.item(i).text() == self.filePath.text():
+                self.lastFiles.takeItem(i)
+                break
+        self.lastFiles.insertItem(0, self.filePath.text())
 
         if self.grayCheck.isChecked():
             self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)

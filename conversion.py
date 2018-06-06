@@ -18,10 +18,11 @@ HSL - korzysta z średniego światła białego w przestrzeni HSL
 HSV - korzysta z mocy światła białego w przestrzeni HSV
 GRAY - konwersja do odcieni szarości
 RGB - użycie wartości R, G, B
+YCbCr - korzysta z składowej luminancji w przestrzeni HSV
 """
 
-def poisson(k, narr):
-    return np.divide(np.multiply(np.power(narr, k), np.exp(-narr)), factorial(k))
+def poisson(narr):
+    return np.random.poisson(narr)#np.divide(np.multiply(np.power(narr, k), np.exp(-narr)), factorial(k))
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -31,7 +32,7 @@ if __name__ == '__main__':
         print(OPTIONS)
         sys.exit(-1)
 
-    if sys.argv[1] != "HSL" and sys.argv[1] != "HSV" and sys.argv[1] != "GRAY" and sys.argv[1] != "RGB": 
+    if sys.argv[1] != "HSL" and sys.argv[1] != "HSV" and sys.argv[1] != "GRAY" and sys.argv[1] != "RGB" and sys.argv[1] != "YCbCr": 
         print("Nieprawidłowy parametr.")
         print(OPTIONS)
         sys.exit(-1)
@@ -43,38 +44,34 @@ if __name__ == '__main__':
  
     if sys.argv[1] == "HSL":
         im_hls = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
-        im_hls_ = im_hls[:,:,1]
         del image
         
         for it in [1,2,4,8,16,32,64,128]:
-            tmp = np.divide(im_hls_, 255)/it
-            tmp = poisson(1, tmp)
-            im_hls[:,:,1] =  np.multiply(tmp, 255)
+            tmp = np.divide(im_hls, it)
+            tmp = np.uint8(poisson(tmp))
 
-            image = cv2.cvtColor(im_hls, cv2.COLOR_HLS2RGB)
+            image = cv2.cvtColor(tmp, cv2.COLOR_HLS2RGB)
             img = Image.fromarray(image, 'RGB')
-            img.save('tmp'+str(it)+'.png')
+            img.save('tmp'+str(it)+'.jpg')
             print("Job "+str(it)+" done")
 
-            viewer.loadImageFromFile('tmp'+str(it)+'.png')  # Pops up file dialog.
+            viewer.loadImageFromFile('tmp'+str(it)+'.jpg')  # Pops up file dialog.
             app.processEvents()
 
     elif sys.argv[1] == "HSV":
         im_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        im_hsv_ = im_hsv[:,:,2]
         del image
         
         for it in [1,2,4,8,16,32,64,128]:
-            tmp = np.divide(im_hsv_, 255)/it
-            tmp = poisson(1, tmp)
-            im_hsv[:,:,2] =  np.multiply(tmp, 255)
+            tmp = np.divide(im_hsv, it)
+            tmp = np.uint8(poisson(tmp))
 
-            image = cv2.cvtColor(im_hsv, cv2.COLOR_HSV2RGB)
+            image = cv2.cvtColor(tmp, cv2.COLOR_HSV2RGB)
             img = Image.fromarray(image, 'RGB')
-            img.save('tmp'+str(it)+'.png')
+            img.save('tmp'+str(it)+'.jpg')
             print("Job "+str(it)+" done")
 
-            viewer.loadImageFromFile('tmp'+str(it)+'.png')  # Pops up file dialog.
+            viewer.loadImageFromFile('tmp'+str(it)+'.jpg')  # Pops up file dialog.
             app.processEvents()
 
     elif sys.argv[1] == "GRAY":
@@ -82,15 +79,14 @@ if __name__ == '__main__':
         del image
         
         for it in [1,2,4,8,16,32,64,128]:
-            tmp = np.divide(im_gray, 255*it)
-            tmp = poisson(1, tmp)
-            tmp =  np.uint8(np.multiply(tmp, 255))
+            tmp = np.divide(im_gray, it)
+            tmp = np.uint8(poisson(tmp))
 
             img = Image.fromarray(tmp, 'L')
-            img.save('tmp'+str(it)+'.png')
+            img.save('tmp'+str(it)+'.jpg')
             print("Job "+str(it)+" done")
 
-            viewer.loadImageFromFile('tmp'+str(it)+'.png')  # Pops up file dialog.
+            viewer.loadImageFromFile('tmp'+str(it)+'.jpg')  # Pops up file dialog.
             app.processEvents()
 
     elif sys.argv[1] == "RGB":
@@ -98,15 +94,30 @@ if __name__ == '__main__':
         del image
         
         for it in [1,2,4,8,16,32,64,128]:
-            tmp = np.divide(im_rgb, 255*it)
-            tmp = poisson(1, tmp)
-            tmp =  np.uint8(np.multiply(tmp, 255))
+            tmp = np.divide(im_rgb, it)
+            tmp = np.uint8( poisson(tmp) )
 
             img = Image.fromarray(tmp, 'RGB')
-            img.save('tmp'+str(it)+'.png')
+            img.save('tmp'+str(it)+'.jpg')
             print("Job "+str(it)+" done")
 
-            viewer.loadImageFromFile('tmp'+str(it)+'.png')  # Pops up file dialog.
+            viewer.loadImageFromFile('tmp'+str(it)+'.jpg')  # Pops up file dialog.
+            app.processEvents()
+
+    elif sys.argv[1] == "YCbCr":
+        im_ycrcb = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
+        del image
+        
+        for it in [1,2,4,8,16,32,64,128]:
+            tmp = np.divide(im_ycrcb, it)
+            tmp = np.uint8( poisson(tmp) )
+
+            image = cv2.cvtColor(tmp, cv2.COLOR_YCrCb2RGB)
+            img = Image.fromarray(image, 'RGB')
+            img.save('tmp'+str(it)+'.jpg')
+            print("Job "+str(it)+" done")
+
+            viewer.loadImageFromFile('tmp'+str(it)+'.jpg')  # Pops up file dialog.
             app.processEvents()
         
 
