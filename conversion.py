@@ -14,15 +14,15 @@ from PIL import Image
 OPTIONS = """conversion.py <option> file
 Skrypt korzysta z rozkładu Poissona do generacji obrazów. Korzystając z pikseli jako parametr alfa generuje sekwencje zdjęć {alfa, alfa/2, alfa/4, alfa/8, alfa/16, alfa/32, alfa/64, alfa/128}.
 option:
-HSL - korzysta z modelu HSL
-HSV - korzysta z modelu HSV
+HSL - korzysta z średniego światła białego w przestrzeni HSL
+HSV - korzysta z mocy światła białego w przestrzeni HSV
 GRAY - konwersja do odcieni szarości
 RGB - użycie wartości R, G, B
-YCbCr - korzysta z modelu YCbCr
+YCbCr - korzysta z składowej luminancji w przestrzeni HSV
 """
 
 def poisson(narr):
-    return np.random.poisson(narr)
+    return np.random.poisson(narr)#np.divide(np.multiply(np.power(narr, k), np.exp(-narr)), factorial(k))
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

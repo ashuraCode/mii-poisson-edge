@@ -254,6 +254,53 @@ class AppForMiI(QWidget):
         wid2d5.setLayout(lay2d5)
         tabs.addTab(wid2d5, "Scharr")
 
+
+        wid2d6 = QWidget()
+        lay2d6 = QGridLayout()
+        
+        robertsUpBtn = QPushButton("Roberts")
+        lay2d6.addWidget(robertsUpBtn, 0, 0, 1, 3)
+        robertsUpBtn.clicked.connect(self.robertsUpdate)
+        
+        robertsModeLabel = QLabel("Wykrywanie krawędzi:")
+        lay2d6.addWidget(robertsModeLabel, 1, 0)
+
+        self.robertsMode1 = QRadioButton("po x")
+        self.robertsMode2 = QRadioButton("po y")
+        self.robertsMode3 = QRadioButton("jako średnia ważona x,y")
+        robertsLay = QHBoxLayout()
+        robertsLay.addWidget(self.robertsMode1)
+        robertsLay.addWidget(self.robertsMode2)
+        robertsLay.addWidget(self.robertsMode3)
+        robertsGr = QGroupBox()
+        robertsGr.setLayout(robertsLay)
+        self.robertsMode1.setChecked(True)
+        
+        lay2d6.addWidget(robertsGr, 1, 1, 1, 2)
+
+        self.robertsXtoYWeight = QSlider()
+        self.robertsXtoYWeight.setMinimum(1)
+        self.robertsXtoYWeight.setMaximum(99)
+        self.robertsXtoYWeight.setOrientation(Qt.Horizontal)
+        self.robertsXtoYWeight.setValue(50)
+
+        robertsWeightLabel = QLabel("Waga x do y")
+        self.robertsWeightValue = QLabel("0.50")
+        
+        lay2d6.addWidget(robertsWeightLabel, 2, 0)
+        lay2d6.addWidget(self.robertsXtoYWeight, 2, 1)
+        lay2d6.addWidget(self.robertsWeightValue, 2, 2)
+
+        self.robertsXtoYWeight.valueChanged.connect(self.robertsSlider)
+
+        vSpacer = QSpacerItem(5, 5, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        lay2d6.addItem(vSpacer, 3,0)
+
+        wid2d6.setLayout(lay2d6)
+        tabs.addTab(wid2d6, "Roberts")
+
+
+
         wid1d2 = QWidget()
         lay1d2 = QHBoxLayout()
 
@@ -284,9 +331,9 @@ class AppForMiI(QWidget):
             else:
                 self.image = cv2.imread(self.filePath.text())
                 
-            cv2.imwrite("tmp.png", self.image)
+            cv2.imwrite("tmp.jpg", self.image)
 
-            self.viewer.loadImageFromFile("tmp.png")
+            self.viewer.loadImageFromFile("tmp.jpg")
             self.viewer.show()
 
     def serialize(self):
@@ -314,13 +361,13 @@ class AppForMiI(QWidget):
             self.filePath.setText(selItem)
         
     def wybierzObraz(self):
-        fd = QFileDialog.getOpenFileName(None, "Wybierz obraz", "", "Obraz (*.jpg *.png)")
+        fd = QFileDialog.getOpenFileName(None, "Wybierz obraz", "", "Obraz (*.jpg *.jpg)")
         if len(fd) != 0:
             self.filePath.setText(fd[0])
         
     def zapiszObraz(self):
-        copyfile("tmp.png", self.filePathSave.text()+
-            '{:%Y-%m-%d_%H%M%S}'.format(dtim.datetime.now())+".png")
+        copyfile("tmp.jpg", self.filePathSave.text()+
+            '{:%Y-%m-%d_%H%M%S}'.format(dtim.datetime.now())+".jpg")
         
     def filePathChanged(self):
         if isinstance(self.image, np.ndarray):
@@ -338,9 +385,9 @@ class AppForMiI(QWidget):
         if self.grayCheck.isChecked():
             self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
 
-        cv2.imwrite("tmp.png", self.image)
+        cv2.imwrite("tmp.jpg", self.image)
 
-        self.viewer.loadImageFromFile("tmp.png")
+        self.viewer.loadImageFromFile("tmp.jpg")
         self.viewer.show()
 
         print( self.image.shape )
@@ -368,8 +415,8 @@ class AppForMiI(QWidget):
 
                 edge_sobel = cv2.addWeighted( sobelx, xweight, sobely, yweight, 0)
 
-            cv2.imwrite("tmp.png", edge_sobel)
-            self.viewer.loadImageFromFile("tmp.png")
+            cv2.imwrite("tmp.jpg", edge_sobel)
+            self.viewer.loadImageFromFile("tmp.jpg")
             self.viewer.show()
             
     def cannyThreshold1(self):
@@ -385,8 +432,8 @@ class AppForMiI(QWidget):
     def cannyUpdate(self):
         if isinstance(self.image, np.ndarray):
             edge_canny = cv2.Canny(self.image, self.cannyThr1.value(), self.cannyThr2.value())
-            cv2.imwrite("tmp.png", edge_canny)
-            self.viewer.loadImageFromFile("tmp.png")
+            cv2.imwrite("tmp.jpg", edge_canny)
+            self.viewer.loadImageFromFile("tmp.jpg")
             self.viewer.show()
         
     def prewittUpdate(self):
@@ -411,22 +458,34 @@ class AppForMiI(QWidget):
             elif self.prewittMode3.isChecked():
                 edge_prewitt = img_prewittx + img_prewitty
 
-            cv2.imwrite("tmp.png", edge_prewitt)
-            self.viewer.loadImageFromFile("tmp.png")
+            cv2.imwrite("tmp.jpg", edge_prewitt)
+            self.viewer.loadImageFromFile("tmp.jpg")
             self.viewer.show()
+        
+    def robertsSlider(self):
+        self.robertsWeightValue.setText(str(self.robertsXtoYWeight.value()/100))
         
     def robertsUpdate(self):
         if isinstance(self.image, np.ndarray):
-            gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
             roberts_cross_v = np.array( [[ 0, 0, 0 ],  [ 0, 1, 0 ], [ 0, 0,-1 ]] )
             roberts_cross_h = np.array( [[ 0, 0, 0 ], [ 0, 0, 1 ], [ 0,-1, 0 ]] )
 
-            vertical = ndimage.convolve( gray_image, roberts_cross_v )
-            horizontal = ndimage.convolve( gray_image, roberts_cross_h )
-            edge_roberts = np.sqrt( np.square(horizontal) + np.square(vertical))
+            if not self.robertsMode2.isChecked():    
+                img_robertsx = cv2.filter2D(self.image, -1, roberts_cross_h)
+            if not self.robertsMode1.isChecked():    
+                img_robertsy = cv2.filter2D(self.image, -1, roberts_cross_v)
+
+            if self.robertsMode1.isChecked():
+                edge_roberts = img_robertsx
+            elif self.robertsMode2.isChecked():
+                edge_roberts = img_robertsy
+            elif self.robertsMode3.isChecked():
+                xweight = self.robertsXtoYWeight.value()/100
+                yweight = 1 - xweight
+                edge_roberts = cv2.addWeighted( img_robertsx, xweight, img_robertsy, yweight, 0)
             
-            cv2.imwrite("tmp.png", edge_roberts)
-            self.viewer.loadImageFromFile("tmp.png")
+            cv2.imwrite("tmp.jpg", edge_roberts)
+            self.viewer.loadImageFromFile("tmp.jpg")
             self.viewer.show()
         
     def scharrSlider(self):
@@ -452,8 +511,8 @@ class AppForMiI(QWidget):
 
                 edge_scharr = cv2.addWeighted(abs_grad_x, xweight, abs_grad_y, yweight, 0)
             
-            cv2.imwrite("tmp.png", edge_scharr)
-            self.viewer.loadImageFromFile("tmp.png")
+            cv2.imwrite("tmp.jpg", edge_scharr)
+            self.viewer.loadImageFromFile("tmp.jpg")
             self.viewer.show()
 
 
